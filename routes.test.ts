@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { formatDistance, formatDuration, parsePlaces, parseRoutes, parseTomTom } from './app/utils/routes.ts'
+import { formatDistance, formatDuration, parsePlaces, parseRoutes, parseTomTom, parseTomTomRoutes } from './app/utils/routes.ts'
 
 const route = (distance: number) => ({ distance, duration: 60, geometry: { coordinates: [[-46.6, -23.5]] } })
 
@@ -8,6 +8,17 @@ test('parseRoutes sorts by distance and flips coordinates', () => {
   const routes = parseRoutes({ code: 'Ok', routes: [route(900), route(300)] })
   assert.deepEqual(routes.map(r => r.distance), [300, 900])
   assert.deepEqual(routes[0].coords, [[-23.5, -46.6]])
+})
+
+test('parseTomTomRoutes sorts by distance and joins legs', () => {
+  const route = (lengthInMeters: number, travelTimeInSeconds: number) => ({
+    summary: { lengthInMeters, travelTimeInSeconds },
+    legs: [{ points: [{ latitude: -20.3, longitude: -40.3 }] }, { points: [{ latitude: -20.2, longitude: -40.2 }] }],
+  })
+  const routes = parseTomTomRoutes({ routes: [route(8600, 660), route(8500, 1020)] })
+  assert.deepEqual(routes.map(r => r.distance), [8500, 8600])
+  assert.equal(routes[0].duration, 1020)
+  assert.deepEqual(routes[0].coords, [[-20.3, -40.3], [-20.2, -40.2]])
 })
 
 test('parseRoutes separates no route from service failure', () => {

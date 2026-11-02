@@ -22,6 +22,7 @@ const theme = ref(document.documentElement.dataset.theme)
 useHead({ meta: [{ name: 'theme-color', content: () => theme.value === 'dark' ? '#141b17' : '#efe8d8' }] })
 
 const longest = computed(() => Math.max(...routes.value.map(r => r.distance)))
+const fastest = computed(() => routes.value.reduce((best, route, i) => route.duration < routes.value[best]!.duration ? i : best, 0))
 const hasBoth = computed(() => !!points.value[0] && !!points.value[1])
 const hint = computed(() => {
   if (hasBoth.value) return 'Arraste os pontos para ajustar.'
@@ -59,7 +60,7 @@ function toggleTheme() {
 }
 
 function colorOf(index: number) {
-  return `var(--route-${index % 4 + 1})`
+  return `var(--route-${index % 6 + 1})`
 }
 
 function coordsLabel({ lat, lng }: L.LatLng) {
@@ -112,7 +113,7 @@ async function load() {
   canRetry.value = false
   clearLines()
   try {
-    const found = await fetchRoutes(points.value[0]!.wrap(), points.value[1]!.wrap(), signal)
+    const found = await fetchRoutes(points.value[0]!.wrap(), points.value[1]!.wrap(), signal, tomtomKey)
     selected.value = 0
     routes.value = found
     if (!found.length) error.value = 'Nenhuma rota de carro liga estes dois pontos.'
@@ -204,7 +205,7 @@ onMounted(() => {
     maxZoom: 19,
     // CORS responses, so the service worker can see the status and store real tile sizes
     crossOrigin: true,
-    attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · rotas <a href="https://project-osrm.org">OSRM</a> · busca ${tomtomKey ? '<a href="https://www.tomtom.com">TomTom</a> e ' : ''}<a href="https://photon.komoot.io">Photon</a>`,
+    attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · rotas e busca ${tomtomKey ? '<a href="https://www.tomtom.com">TomTom</a>, ' : ''}<a href="https://project-osrm.org">OSRM</a>, <a href="https://photon.komoot.io">Photon</a>`,
   }).addTo(map)
   // A stray tap must not wipe the routes: starting over goes through "Limpar mapa"
   map.on('click', (e: L.LeafletMouseEvent) => {
@@ -290,6 +291,7 @@ onMounted(() => {
                   {{ formatDuration(route.duration) }}
                   <template v-if="i"> · +{{ formatDistance(route.distance - routes[0]!.distance) }}</template>
                   <template v-else> · mais curta</template>
+                  <template v-if="i === fastest"> · mais rápida</template>
                 </span>
                 <span class="scale" :style="{ width: `${route.distance / longest * 100}%` }" />
               </button>

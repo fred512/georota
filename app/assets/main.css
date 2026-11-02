@@ -10,6 +10,8 @@
   --route-2: #1f5fa8;
   --route-3: #2e7d4f;
   --route-4: #7b3f8c;
+  --route-5: #a8690f;
+  --route-6: #0f7c8a;
   --tiles: grayscale(0.75) sepia(0.28) contrast(0.92) brightness(1.02);
   --display: 'Fraunces Variable', Georgia, serif;
   --mono: 'DM Mono', ui-monospace, monospace;
@@ -28,6 +30,8 @@
   --route-2: #6cb0f2;
   --route-3: #6fcf97;
   --route-4: #c792ea;
+  --route-5: #f2c14e;
+  --route-6: #4fd1c5;
   --tiles: invert(1) hue-rotate(180deg) grayscale(0.55) sepia(0.12) brightness(0.92) contrast(0.88);
 }
 
@@ -215,7 +219,7 @@ h1 em { font-weight: 400; color: var(--route-1); }
   font-variant-numeric: tabular-nums;
 }
 
-.meta { justify-self: end; color: var(--ink-soft); font-size: 12px; }
+.meta { justify-self: end; color: var(--ink-soft); font-size: 12px; text-align: right; }
 
 /* Line sample drawn to scale: its length is the route's distance */
 .scale {

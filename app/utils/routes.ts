@@ -7,11 +7,39 @@ const OSRM = 'https://router.project-osrm.org/route/v1/driving'
 // Photon allows search-as-you-type on OSM data. Nominatim's usage policy forbids it.
 const PHOTON = 'https://photon.komoot.io/api/'
 const TOMTOM = 'https://api.tomtom.com/search/2/search'
+const TOMTOM_ROUTING = 'https://api.tomtom.com/routing/1/calculateRoute'
 
-export async function fetchRoutes(a: LatLng, b: LatLng, signal?: AbortSignal): Promise<Route[]> {
+// TomTom returns up to 6 routes where OSRM often returns 1. OSRM covers a missing key, used-up quota or outage.
+export async function fetchRoutes(a: LatLng, b: LatLng, signal?: AbortSignal, tomtomKey?: string): Promise<Route[]> {
+  if (tomtomKey) {
+    try {
+      const routes = await fetchTomTomRoutes(a, b, tomtomKey, signal)
+      if (routes.length) return routes
+    }
+    catch (error) {
+      if (signal?.aborted) throw error
+    }
+  }
   const url = `${OSRM}/${a.lng},${a.lat};${b.lng},${b.lat}?alternatives=3&overview=full&geometries=geojson`
   const res = await fetch(url, { signal })
   return parseRoutes(await res.json())
+}
+
+async function fetchTomTomRoutes(a: LatLng, b: LatLng, key: string, signal?: AbortSignal): Promise<Route[]> {
+  const params = new URLSearchParams({ key, maxAlternatives: '5', alternativeType: 'anyRoute', traffic: 'false' })
+  const res = await fetch(`${TOMTOM_ROUTING}/${a.lat},${a.lng}:${b.lat},${b.lng}/json?${params}`, { signal })
+  if (!res.ok) throw new Error(`TomTom ${res.status}`)
+  return parseTomTomRoutes(await res.json())
+}
+
+export function parseTomTomRoutes(data: any): Route[] {
+  return data.routes
+    .map((r: any): Route => ({
+      distance: r.summary.lengthInMeters,
+      duration: r.summary.travelTimeInSeconds,
+      coords: r.legs.flatMap((leg: any) => leg.points.map((p: any) => [p.latitude, p.longitude])),
+    }))
+    .sort((x: Route, y: Route) => x.distance - y.distance)
 }
 
 // Shortest first. Empty means the points are valid but nothing connects them.
