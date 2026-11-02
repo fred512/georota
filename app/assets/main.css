@@ -1,0 +1,353 @@
+:root {
+  color-scheme: light;
+  --paper: #efe8d8;
+  --paper-deep: #e4dbc6;
+  --ink: #1d2a24;
+  --ink-soft: #5c665c;
+  --rule: #1d2a2433;
+  --alert: #a12d12;
+  --route-1: #d1401f;
+  --route-2: #1f5fa8;
+  --route-3: #2e7d4f;
+  --route-4: #7b3f8c;
+  --tiles: grayscale(0.75) sepia(0.28) contrast(0.92) brightness(1.02);
+  --display: 'Fraunces Variable', Georgia, serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+}
+
+/* Night chart: same sheet, inverted. data-theme is set before first paint in nuxt.config.ts */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #141b17;
+  --paper-deep: #1f2823;
+  --ink: #ebe4d3;
+  --ink-soft: #9aa394;
+  --rule: #ebe4d333;
+  --alert: #ff8a6b;
+  --route-1: #ff7a52;
+  --route-2: #6cb0f2;
+  --route-3: #6fcf97;
+  --route-4: #c792ea;
+  --tiles: invert(1) hue-rotate(180deg) grayscale(0.55) sepia(0.12) brightness(0.92) contrast(0.88);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.sheet {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100svh;
+}
+
+/* Panel: the printed legend of a survey sheet */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  overflow-y: auto;
+  border-right: 1px solid var(--ink);
+}
+
+.masthead {
+  position: relative;
+  padding-bottom: 18px;
+  border-bottom: 3px double var(--ink);
+}
+
+h1 {
+  font-family: var(--display);
+  font-size: 56px;
+  font-weight: 600;
+  font-variation-settings: 'opsz' 144;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+h1 em { font-weight: 400; color: var(--route-1); }
+
+.masthead p { margin-top: 8px; color: var(--ink-soft); font-size: 13px; }
+
+.theme-toggle {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-toggle svg { transition: transform 0.35s; }
+[data-theme='dark'] .theme-toggle svg { transform: rotate(180deg); }
+
+.place { border-bottom: 1px solid var(--rule); }
+.place:focus-within { border-bottom-color: var(--ink); }
+
+.place-row { display: flex; align-items: center; gap: 10px; }
+
+.tag {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.place.empty .tag { background: transparent; color: var(--ink-soft); outline: 1px dashed var(--ink-soft); outline-offset: -1px; }
+
+.place input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-overflow: ellipsis;
+  outline: none;
+}
+
+.place input::placeholder { color: var(--ink-soft); opacity: 1; }
+
+.place ul { padding: 0; list-style: none; }
+
+.place li {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.place li:hover, .place li[aria-selected='true'] { background: var(--paper-deep); }
+.place-title { font-size: 13px; font-weight: 500; }
+.place-detail { color: var(--ink-soft); font-size: 12px; }
+.place-status { padding: 0 0 10px 34px; color: var(--ink-soft); font-size: 13px; }
+
+.hint { color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
+
+.offline {
+  padding-left: 10px;
+  border-left: 3px solid var(--alert);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.legend h2 {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.legend ol { padding: 0; list-style: none; }
+
+.legend li {
+  animation: rise 0.35s var(--delay) both;
+}
+
+.legend button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 2px 12px;
+  width: 100%;
+  padding: 12px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.legend button:hover { background: var(--paper-deep); }
+.legend button[aria-pressed='true'] { background: var(--paper-deep); }
+.legend button[aria-pressed='false'] .distance { color: var(--ink-soft); }
+
+.distance {
+  font-family: var(--display);
+  font-size: 30px;
+  font-variation-settings: 'opsz' 72;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.meta { justify-self: end; color: var(--ink-soft); font-size: 12px; }
+
+/* Line sample drawn to scale: its length is the route's distance */
+.scale {
+  grid-column: 1 / -1;
+  height: 4px;
+  margin-top: 6px;
+  background: var(--route);
+  transform-origin: left;
+  animation: draw 0.5s var(--delay) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+[aria-pressed='false'] .scale { height: 2px; margin-block: 7px 1px; }
+
+.status { display: flex; align-items: center; gap: 10px; }
+.status.error { color: var(--alert); line-height: 1.5; }
+
+.tracing {
+  width: 36px;
+  height: 0;
+  border-top: 3px dashed var(--route-1);
+  animation: march 0.8s linear infinite;
+}
+
+.legend .retry {
+  display: block;
+  width: auto;
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0 14px;
+  border: 1px solid var(--ink);
+}
+
+.clear {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.clear:hover { color: var(--alert); }
+
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Map: inset in a neatline, with survey ticks along the edges */
+.map-frame {
+  position: relative;
+  padding: 14px;
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 10%) top / 100% 6px no-repeat,
+    repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 10%) bottom / 100% 6px no-repeat,
+    repeating-linear-gradient(0deg, var(--ink) 0 1px, transparent 1px 10%) left / 6px 100% no-repeat,
+    repeating-linear-gradient(0deg, var(--ink) 0 1px, transparent 1px 10%) right / 6px 100% no-repeat;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--ink);
+  background: var(--paper-deep);
+  font-family: var(--mono);
+}
+
+.map.leaflet-container { cursor: crosshair; }
+.leaflet-tile-pane { filter: var(--tiles); }
+.leaflet-interactive { cursor: pointer; }
+
+.pin {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 2px 6px #1d2a2466;
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: grab;
+}
+
+.leaflet-bar a {
+  border-color: var(--ink) !important;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.leaflet-bar { border: 1px solid var(--ink) !important; border-radius: 0; box-shadow: none !important; }
+.leaflet-bar a:first-child, .leaflet-bar a:last-child { border-radius: 0; }
+.leaflet-bar a:hover, .leaflet-bar a.leaflet-disabled { background: var(--paper-deep); }
+.leaflet-bar a.leaflet-disabled { color: var(--ink-soft); }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--paper) 80%, transparent) !important; color: var(--ink-soft); font-size: 10px; }
+.leaflet-control-attribution a { color: var(--ink); }
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+@keyframes draw { from { transform: scaleX(0); } }
+@keyframes march { to { transform: translateX(6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Phone: full-bleed map, legend docked under the thumb, the page itself never scrolls */
+@media (max-width: 760px) {
+  body { overflow: hidden; overscroll-behavior: none; }
+
+  .sheet {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .map-frame { order: -1; padding: 0; background: none; }
+  .map { border: 0; }
+
+  .panel {
+    position: relative;
+    gap: 10px;
+    max-height: 55svh;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 3px double var(--ink);
+  }
+
+  .masthead { padding: 0; border: 0; }
+  .masthead p { display: none; }
+  h1 { font-size: 26px; }
+
+  /* 16px stops iOS from zooming the page on focus */
+  .place input { height: 40px; font-size: 16px; }
+
+  .legend button { min-height: 56px; padding: 8px; }
+  .distance { font-size: 24px; }
+
+  .theme-toggle { top: -9px; }
+
+  /* Sits on the masthead row, tall enough to tap */
+  .clear {
+    position: absolute;
+    top: 3px;
+    right: 56px;
+    min-height: 44px;
+    margin: 0;
+  }
+
+  .leaflet-touch .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+}
