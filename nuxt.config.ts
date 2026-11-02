@@ -46,6 +46,8 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+      // nuxt generate writes these fallback pages. Their URLs 404 once hosted, and one failed precache entry stops the whole service worker from installing.
+      globIgnores: ['200.html', '404.html'],
       runtimeCaching: [{
         // ponytail: keeps only tiles the user already saw. OSM forbids bulk tile download, so a full offline region needs another tile source.
         urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
