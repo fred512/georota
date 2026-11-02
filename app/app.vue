@@ -4,8 +4,8 @@ import type { Place, Route } from '~/utils/routes'
 
 const POINTS = [{ tag: 'A', name: 'origem' }, { tag: 'B', name: 'destino' }]
 const THEME_KEY = 'georota:theme'
-const LAST_KEY = 'georota:last'
 
+const { tomtomKey } = useRuntimeConfig().public
 const mapEl = ref<HTMLElement>()
 const points = shallowRef<(L.LatLng | undefined)[]>([])
 const labels = ref<string[]>([])
@@ -39,11 +39,8 @@ function readStored(key: string) {
   catch { return null }
 }
 
-function writeStored(key: string, value: string | null) {
-  try {
-    if (value === null) localStorage.removeItem(key)
-    else localStorage.setItem(key, value)
-  }
+function writeStored(key: string, value: string) {
+  try { localStorage.setItem(key, value) }
   catch {}
 }
 
@@ -82,8 +79,6 @@ function reset() {
   markers = []
   points.value = []
   labels.value = []
-  // Offline this copy cannot be fetched again, so keep it for the next opening
-  if (online.value) writeStored(LAST_KEY, null)
 }
 
 function restyle() {
@@ -116,12 +111,7 @@ async function load() {
     const found = await fetchRoutes(points.value[0]!.wrap(), points.value[1]!.wrap(), signal)
     selected.value = 0
     routes.value = found
-    if (found.length) {
-      writeStored(LAST_KEY, JSON.stringify({ points: points.value.map(p => [p!.lat, p!.lng]), labels: labels.value, routes: found }))
-    }
-    else {
-      error.value = 'Nenhuma rota de carro liga estes dois pontos.'
-    }
+    if (!found.length) error.value = 'Nenhuma rota de carro liga estes dois pontos.'
     loading.value = false
     await draw()
   }
@@ -167,22 +157,6 @@ function pickPlace(index: number, place: Place) {
   else map.setView(latlng, Math.max(map.getZoom(), 15))
 }
 
-function restoreLast() {
-  try {
-    const saved = JSON.parse(readStored(LAST_KEY) ?? 'null')
-    if (!saved) return
-    saved.points.forEach(([lat, lng]: [number, number], i: number) => {
-      const latlng = L.latLng(lat, lng)
-      setPoint(i, latlng, saved.labels?.[i] ?? coordsLabel(latlng))
-    })
-    routes.value = saved.routes
-    draw()
-  }
-  catch {
-    writeStored(LAST_KEY, null)
-  }
-}
-
 watch(selected, () => restyle())
 
 onMounted(() => {
@@ -192,7 +166,7 @@ onMounted(() => {
     maxZoom: 19,
     // CORS responses, so the service worker can see the status and store real tile sizes
     crossOrigin: true,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · rotas <a href="https://project-osrm.org">OSRM</a> · busca <a href="https://photon.komoot.io">Photon</a>',
+    attribution: `&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · rotas <a href="https://project-osrm.org">OSRM</a> · busca ${tomtomKey ? '<a href="https://www.tomtom.com">TomTom</a> e ' : ''}<a href="https://photon.komoot.io">Photon</a>`,
   }).addTo(map)
   // A stray tap must not wipe the routes: starting over goes through "Limpar mapa"
   map.on('click', (e: L.LeafletMouseEvent) => {
@@ -201,7 +175,6 @@ onMounted(() => {
     if (hasBoth.value) load()
   })
   new ResizeObserver(() => map.invalidateSize()).observe(mapEl.value!)
-  restoreLast()
 
   // Follow the system until the user picks a theme
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {

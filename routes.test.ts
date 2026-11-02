@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { formatDistance, formatDuration, parsePlaces, parseRoutes } from './app/utils/routes.ts'
+import { formatDistance, formatDuration, parsePlaces, parseRoutes, parseTomTom } from './app/utils/routes.ts'
 
 const route = (distance: number) => ({ distance, duration: 60, geometry: { coordinates: [[-46.6, -23.5]] } })
 
@@ -27,6 +27,16 @@ test('parsePlaces builds labels, flips coordinates and drops repeats', () => {
   assert.deepEqual(places, [
     { title: 'Avenida Paulista', detail: 'Bela Vista · São Paulo', lat: -23.55, lng: -46.66 },
     { title: 'Rua Augusta, 100', detail: 'São Paulo', lat: -23.55, lng: -46.66 },
+  ])
+})
+
+test('parseTomTom labels businesses and streets and drops repeats', () => {
+  const position = { lat: -20.26, lon: -40.26 }
+  const poi = { poi: { name: 'Espeto Gaúcho' }, address: { freeformAddress: 'Av. Ranulpho, 111, Vitória' }, position }
+  const street = { address: { freeformAddress: 'Rua Augusta, São Paulo', municipalitySubdivision: 'Consolação', municipality: 'São Paulo' }, position }
+  assert.deepEqual(parseTomTom({ results: [poi, poi, street] }), [
+    { title: 'Espeto Gaúcho', detail: 'Av. Ranulpho, 111, Vitória', lat: -20.26, lng: -40.26 },
+    { title: 'Rua Augusta, São Paulo', detail: 'Consolação · São Paulo', lat: -20.26, lng: -40.26 },
   ])
 })
 

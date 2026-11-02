@@ -4,6 +4,7 @@ import type { LatLng, Place } from '~/utils/routes'
 const props = defineProps<{ tag: string, name: string, value: string, near: () => LatLng }>()
 const emit = defineEmits<{ pick: [place: Place] }>()
 
+const { tomtomKey } = useRuntimeConfig().public
 const listId = useId()
 const input = ref<HTMLInputElement>()
 const query = ref(props.value)
@@ -33,7 +34,7 @@ async function search() {
   controller = new AbortController()
   const { signal } = controller
   try {
-    const found = await searchPlaces(query.value.trim(), props.near(), signal)
+    const found = await searchPlaces(query.value.trim(), props.near(), signal, tomtomKey)
     results.value = found
     active.value = -1
     status.value = found.length ? '' : 'Não encontrei. Busque a rua ou o bairro e arraste o ponto no mapa.'
@@ -51,7 +52,8 @@ function onInput() {
     close()
     return
   }
-  timer = setTimeout(search, 350)
+  // ponytail: each pause spends one of the 2,500 free monthly TomTom requests. Raise the delay if quota runs out.
+  timer = setTimeout(search, 500)
 }
 
 function pick(place: Place) {

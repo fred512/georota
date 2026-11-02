@@ -2,6 +2,8 @@ export default defineNuxtConfig({
   // Leaflet needs window, and the whole page is the map
   ssr: false,
   compatibilityDate: '2026-11-01',
+  // Goes into the public bundle, so restrict the key to the domain of the app. Without it, search uses only Photon.
+  runtimeConfig: { public: { tomtomKey: process.env.TOMTOM_KEY ?? '' } },
   modules: ['@vite-pwa/nuxt'],
   css: [
     'leaflet/dist/leaflet.css',
