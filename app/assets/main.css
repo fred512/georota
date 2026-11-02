@@ -128,6 +128,23 @@ h1 em { font-weight: 400; color: var(--route-1); }
 
 .place input::placeholder { color: var(--ink-soft); opacity: 1; }
 
+.locate {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.locate:hover { color: var(--ink); }
+.locate.busy { color: var(--route-2); cursor: progress; animation: pulse 1s ease-in-out infinite; }
+
 .place ul { padding: 0; list-style: none; }
 
 .place li {
@@ -148,7 +165,7 @@ h1 em { font-weight: 400; color: var(--route-1); }
 
 .hint { color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
 
-.offline {
+.notice {
   padding-left: 10px;
   border-left: 3px solid var(--alert);
   font-size: 13px;
@@ -302,6 +319,7 @@ h1 em { font-weight: 400; color: var(--route-1); }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
 @keyframes draw { from { transform: scaleX(0); } }
 @keyframes march { to { transform: translateX(6px); } }
+@keyframes pulse { 50% { opacity: 0.35; } }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

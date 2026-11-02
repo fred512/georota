@@ -14,6 +14,8 @@ const selected = ref(0)
 const loading = ref(false)
 const error = ref('')
 const canRetry = ref(false)
+const locating = ref<number | null>(null)
+const locateError = ref('')
 const online = ref(navigator.onLine)
 const theme = ref(document.documentElement.dataset.theme)
 
@@ -32,6 +34,7 @@ let map: L.Map
 let markers: (L.Marker | undefined)[] = []
 let lines: L.Polyline[] = []
 let controller: AbortController | undefined
+let hereDot: L.CircleMarker | undefined
 
 // Storage can throw in private windows. The app works without it.
 function readStored(key: string) {
@@ -74,6 +77,7 @@ function reset() {
   loading.value = false
   error.value = ''
   canRetry.value = false
+  locateError.value = ''
   clearLines()
   markers.forEach(marker => marker?.remove())
   markers = []
@@ -150,11 +154,45 @@ function setPoint(index: number, latlng: L.LatLng, label: string) {
   markers[index] = marker
 }
 
-function pickPlace(index: number, place: Place) {
-  const latlng = L.latLng(place.lat, place.lng)
-  setPoint(index, latlng, place.title)
+function choosePoint(index: number, latlng: L.LatLng, label: string) {
+  setPoint(index, latlng, label)
   if (hasBoth.value) load()
   else map.setView(latlng, Math.max(map.getZoom(), 15))
+}
+
+function pickPlace(index: number, place: Place) {
+  choosePoint(index, L.latLng(place.lat, place.lng), place.title)
+}
+
+function getPosition() {
+  return new Promise<L.LatLng>((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation unavailable'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      const latlng = L.latLng(coords.latitude, coords.longitude)
+      if (hereDot) hereDot.setLatLng(latlng)
+      else hereDot = L.circleMarker(latlng, { radius: 7, color: 'var(--paper)', weight: 2, fillColor: 'var(--route-2)', fillOpacity: 1, interactive: false }).addTo(map)
+      resolve(latlng)
+    }, reject, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 })
+  })
+}
+
+async function useMyLocation(index: number) {
+  locating.value = index
+  locateError.value = ''
+  try {
+    choosePoint(index, await getPosition(), 'Minha localização')
+  }
+  catch (error) {
+    locateError.value = (error as GeolocationPositionError).code === 1
+      ? 'Localização bloqueada. Libere a permissão no navegador.'
+      : 'Não consegui obter sua localização. Tente de novo.'
+  }
+  finally {
+    locating.value = null
+  }
 }
 
 watch(selected, () => restyle())
@@ -175,6 +213,15 @@ onMounted(() => {
     if (hasBoth.value) load()
   })
   new ResizeObserver(() => map.invalidateSize()).observe(mapEl.value!)
+
+  // Open on the user. If denied or slow, stay put and never pull the map away from what they already did.
+  let moved = false
+  map.once('dragstart', () => { moved = true })
+  getPosition()
+    .then((latlng) => {
+      if (!moved && !points.value.some(Boolean)) map.setView(latlng, 15)
+    })
+    .catch(() => {})
 
   // Follow the system until the user picks a theme
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -216,12 +263,15 @@ onMounted(() => {
           :name="point.name"
           :value="labels[i] ?? ''"
           :near="() => map.getCenter()"
+          :locating="locating === i"
           @pick="pickPlace(i, $event)"
+          @locate="useMyLocation(i)"
         />
       </div>
 
       <p class="hint">{{ hint }}</p>
-      <p v-if="!online" class="offline" role="status">Sem internet. O mapa mostra só áreas já vistas.</p>
+      <p v-if="locateError" class="notice" role="status">{{ locateError }}</p>
+      <p v-if="!online" class="notice" role="status">Sem internet. O mapa mostra só áreas já vistas.</p>
 
       <div class="legend" aria-live="polite">
         <p v-if="loading" class="status"><span class="tracing" />Traçando rotas</p>

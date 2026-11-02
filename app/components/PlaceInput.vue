@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { LatLng, Place } from '~/utils/routes'
 
-const props = defineProps<{ tag: string, name: string, value: string, near: () => LatLng }>()
-const emit = defineEmits<{ pick: [place: Place] }>()
+const props = defineProps<{ tag: string, name: string, value: string, near: () => LatLng, locating: boolean }>()
+const emit = defineEmits<{ pick: [place: Place], locate: [] }>()
 
 const { tomtomKey } = useRuntimeConfig().public
 const listId = useId()
@@ -105,6 +105,21 @@ function onBlur() {
         @keydown.up.prevent="move(-1)"
         @keydown.esc="close"
       >
+      <button
+        type="button"
+        class="locate"
+        :class="{ busy: locating }"
+        :disabled="locating"
+        :aria-label="`Usar minha localização como ${name}`"
+        :title="`Usar minha localização como ${name}`"
+        @click="emit('locate')"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="12" cy="12" r="6.5" />
+          <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+          <path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22" />
+        </svg>
+      </button>
     </div>
     <p v-if="status" class="place-status" role="status">{{ status }}</p>
     <ul :id="listId" role="listbox" :aria-label="`Resultados para ${name}`">
