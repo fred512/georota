@@ -36,7 +36,7 @@ async function search() {
     const found = await searchPlaces(query.value.trim(), props.near(), signal)
     results.value = found
     active.value = -1
-    status.value = found.length ? '' : 'Nada encontrado.'
+    status.value = found.length ? '' : 'Não encontrei. Busque a rua ou o bairro e arraste o ponto no mapa.'
   }
   catch {
     if (signal.aborted) return
@@ -120,5 +120,6 @@ function onBlur() {
         <span class="place-detail">{{ place.detail }}</span>
       </li>
     </ul>
+    <p v-if="results.length" class="place-status">Não é este? Busque a rua ou o bairro e arraste o ponto no mapa.</p>
   </div>
 </template>

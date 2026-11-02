@@ -3,8 +3,6 @@ export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: '2026-11-01',
   modules: ['@vite-pwa/nuxt'],
-  // The service worker needs a real index.html to serve when offline
-  nitro: { prerender: { routes: ['/'] } },
   css: [
     'leaflet/dist/leaflet.css',
     '@fontsource-variable/fraunces/opsz.css',

@@ -20,7 +20,7 @@ test('parsePlaces builds labels, flips coordinates and drops repeats', () => {
   const point = { coordinates: [-46.66, -23.55] }
   const places = parsePlaces({ features: [
     { properties: { name: 'Avenida Paulista', district: 'Bela Vista', city: 'São Paulo', state: 'São Paulo' }, geometry: point },
-    { properties: { name: 'Avenida Paulista', district: 'Bela Vista', city: 'São Paulo', state: 'São Paulo' }, geometry: point },
+    { properties: { name: 'AVENIDA PAULISTA', district: 'Bela Vista', city: 'SAO PAULO', state: 'SAO PAULO' }, geometry: point },
     { properties: { street: 'Rua Augusta', housenumber: '100', city: 'São Paulo' }, geometry: point },
     { properties: { city: 'sem nome' }, geometry: point },
   ] })

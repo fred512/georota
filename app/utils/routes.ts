@@ -46,7 +46,8 @@ export function parsePlaces(data: any): Place[] {
     const street = [p.street, p.housenumber].filter(Boolean).join(', ')
     const title = p.name ?? street
     const detail = [...new Set([p.district, p.city, p.state])].filter(Boolean).join(' · ')
-    const key = `${title}|${detail}`
+    // Mappers type the same place as "JACARÉ" and "jacare", so compare without case or accents
+    const key = `${title}|${detail}`.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
     if (!title || seen.has(key)) continue
     seen.add(key)
     const [lng, lat] = geometry.coordinates
