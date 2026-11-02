@@ -283,6 +283,7 @@ onMounted(() => {
 
         <template v-else-if="routes.length">
           <h2>{{ routes.length === 1 ? '1 rota encontrada' : `${routes.length} rotas encontradas` }}</h2>
+          <p class="traffic-note">{{ routes[0]!.trafficDelay === undefined ? 'Tempos sem trânsito: serviço de trânsito indisponível.' : 'Tempos com o trânsito de agora.' }}</p>
           <ol>
             <li v-for="(route, i) in routes" :key="i" :style="{ '--route': colorOf(i), '--delay': `${i * 70}ms` }">
               <button type="button" :aria-pressed="selected === i" @click="selected = i">
@@ -292,6 +293,7 @@ onMounted(() => {
                   <template v-if="i"> · +{{ formatDistance(route.distance - routes[0]!.distance) }}</template>
                   <template v-else> · mais curta</template>
                   <template v-if="i === fastest"> · mais rápida</template>
+                  <span v-if="route.trafficDelay! >= 60" class="delay">+{{ formatDuration(route.trafficDelay!) }} de trânsito</span>
                 </span>
                 <span class="scale" :style="{ width: `${route.distance / longest * 100}%` }" />
               </button>

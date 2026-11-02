@@ -1,5 +1,6 @@
 export type LatLng = { lat: number, lng: number }
-export type Route = { distance: number, duration: number, coords: [number, number][] }
+// trafficDelay is only known with live traffic: OSRM routes leave it undefined
+export type Route = { distance: number, duration: number, trafficDelay?: number, coords: [number, number][] }
 export type Place = LatLng & { title: string, detail: string }
 
 // ponytail: OSRM public demo server, car only and no uptime promise. Swap this file for GraphHopper to get more alternatives.
@@ -26,7 +27,7 @@ export async function fetchRoutes(a: LatLng, b: LatLng, signal?: AbortSignal, to
 }
 
 async function fetchTomTomRoutes(a: LatLng, b: LatLng, key: string, signal?: AbortSignal): Promise<Route[]> {
-  const params = new URLSearchParams({ key, maxAlternatives: '5', alternativeType: 'anyRoute', traffic: 'false' })
+  const params = new URLSearchParams({ key, maxAlternatives: '5', alternativeType: 'anyRoute', traffic: 'true' })
   const res = await fetch(`${TOMTOM_ROUTING}/${a.lat},${a.lng}:${b.lat},${b.lng}/json?${params}`, { signal })
   if (!res.ok) throw new Error(`TomTom ${res.status}`)
   return parseTomTomRoutes(await res.json())
@@ -37,6 +38,7 @@ export function parseTomTomRoutes(data: any): Route[] {
     .map((r: any): Route => ({
       distance: r.summary.lengthInMeters,
       duration: r.summary.travelTimeInSeconds,
+      trafficDelay: r.summary.trafficDelayInSeconds ?? 0,
       coords: r.legs.flatMap((leg: any) => leg.points.map((p: any) => [p.latitude, p.longitude])),
     }))
     .sort((x: Route, y: Route) => x.distance - y.distance)

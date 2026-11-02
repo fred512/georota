@@ -12,12 +12,13 @@ test('parseRoutes sorts by distance and flips coordinates', () => {
 
 test('parseTomTomRoutes sorts by distance and joins legs', () => {
   const route = (lengthInMeters: number, travelTimeInSeconds: number) => ({
-    summary: { lengthInMeters, travelTimeInSeconds },
+    summary: { lengthInMeters, travelTimeInSeconds, trafficDelayInSeconds: 360 },
     legs: [{ points: [{ latitude: -20.3, longitude: -40.3 }] }, { points: [{ latitude: -20.2, longitude: -40.2 }] }],
   })
   const routes = parseTomTomRoutes({ routes: [route(8600, 660), route(8500, 1020)] })
   assert.deepEqual(routes.map(r => r.distance), [8500, 8600])
   assert.equal(routes[0].duration, 1020)
+  assert.equal(routes[0].trafficDelay, 360)
   assert.deepEqual(routes[0].coords, [[-20.3, -40.3], [-20.2, -40.2]])
 })
 

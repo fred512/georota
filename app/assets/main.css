@@ -220,6 +220,8 @@ h1 em { font-weight: 400; color: var(--route-1); }
 }
 
 .meta { justify-self: end; color: var(--ink-soft); font-size: 12px; text-align: right; }
+.delay { display: block; color: var(--alert); }
+.traffic-note { margin-bottom: 4px; color: var(--ink-soft); font-size: 12px; }
 
 /* Line sample drawn to scale: its length is the route's distance */
 .scale {
